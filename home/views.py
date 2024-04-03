@@ -140,5 +140,4 @@ def payment_notification(request):
             amount=amount,
             tx_id=tx_id,
             status=status,
-            merchant_tx_id=merchant_tx_id,
         )
