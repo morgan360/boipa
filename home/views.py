@@ -8,6 +8,7 @@ from django.http import HttpResponse
 from django.http import HttpResponseRedirect
 from django.conf import settings
 import time
+import json
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET
 from django.http import JsonResponse
