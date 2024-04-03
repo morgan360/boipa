@@ -17,8 +17,9 @@ import logging
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-import os
 
+# Assuming BASE_DIR is already defined in your settings.py
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 # BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 LOGGING_DIR = os.path.join(BASE_DIR, 'logs')
 LOG_FILE_PATH = os.path.join(LOGGING_DIR, 'debug.log')
