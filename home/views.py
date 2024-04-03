@@ -15,6 +15,7 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from .models import PaymentNotification
 from django.http import QueryDict
+
 # Load environment variables
 load_dotenv()
 
@@ -116,9 +117,6 @@ def payment_response(request):
         return render(request, 'error.html', {'message': "Unknown payment response."})
 
 
-
-
-
 @csrf_exempt  # Disable CSRF protection for this endpoint
 def payment_notification(request):
     if request.method == 'POST':
@@ -128,7 +126,8 @@ def payment_notification(request):
         # Now, you can access the values using the same dictionary-like interface
         country = data.get('country')
         amount = data.get('amount')
-        tx_id = data.get('txId')
+        txId = data.get('txId')
+        merchantTxId = data.get('merchantTxId')
         status = data.get('status')
 
         # Proceed with your logic
@@ -138,6 +137,7 @@ def payment_notification(request):
         PaymentNotification.objects.create(
             country=country,
             amount=amount,
-            tx_id=tx_id,
+            txId=txId,
+            merchantTxId=merchantTxId,
             status=status,
         )
