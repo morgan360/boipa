@@ -118,53 +118,22 @@ def payment_response(request):
 @csrf_exempt  # Disable CSRF protection for this endpoint
 def payment_notification(request):
     if request.method == 'POST':
-        # Extract data from POST request
-        country = request.POST.get('country')
-        amount = request.POST.get('amount')
-        acquirer_tx_id = request.POST.get('acquirerTxId')
-        tx_id = request.POST.get('txId')
-        language = request.POST.get('language')
-        # Example of extracting nested data
-        auth_code = json.loads(request.POST.get('paymentSolutionDetails')).get('authCode')
-        acquirer = request.POST.get('acquirer')
-        acquirer_amount = request.POST.get('acquirerAmount')
-        myriad_flow_id = request.POST.get('myriadFlowId')
-        merchant_id = request.POST.get('merchantId')
-        brand_id = request.POST.get('brandId')
-        merchant_tx_id = request.POST.get('merchantTxId')
-        customer_id = request.POST.get('customerId')
-        acquirer_currency = request.POST.get('acquirerCurrency')
-        action = request.POST.get('action')
-        payment_solution_id = request.POST.get('paymentSolutionId')
-        currency = request.POST.get('currency')
-        pan = request.POST.get('pan')
-        status = request.POST.get('status')
-        original_tx_id = request.POST.get('originalTxId')
+        # Assuming data is coming in JSON format, so we parse it from request.body
+        data = json.loads(request.body)
 
-        # Store in database
+        # Now only collect a few fields that you're interested in
+        country = data.get('country')
+        amount = data.get('amount')
+        tx_id = data.get('txId')
+        status = data.get('status')
+        merchant_tx_id = data.get('merchantTxId')
+
+        # You can adjust the fields based on what's most relevant to your needs
+        # Store the collected data in the database
         PaymentNotification.objects.create(
             country=country,
             amount=amount,
-            acquirer_tx_id=acquirer_tx_id,
             tx_id=tx_id,
-            language=language,
-            auth_code=auth_code,
-            acquirer=acquirer,
-            acquirer_amount=acquirer_amount,
-            myriad_flow_id=myriad_flow_id,
-            merchant_id=merchant_id,
-            brand_id=brand_id,
-            merchant_tx_id=merchant_tx_id,
-            customer_id=customer_id,
-            acquirer_currency=acquirer_currency,
-            action=action,
-            payment_solution_id=payment_solution_id,
-            currency=currency,
-            pan=pan,
             status=status,
-            original_tx_id=original_tx_id,
+            merchant_tx_id=merchant_tx_id,
         )
-
-        return HttpResponse("Notification received")
-    else:
-        return HttpResponse("Invalid request", status=400)
