@@ -13,7 +13,7 @@ from django.views.decorators.http import require_GET
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from .models import PaymentNotification
-import json
+from django.http import QueryDict
 # Load environment variables
 load_dotenv()
 
@@ -115,18 +115,22 @@ def payment_response(request):
         return render(request, 'error.html', {'message': "Unknown payment response."})
 
 
+
+
+
 @csrf_exempt  # Disable CSRF protection for this endpoint
 def payment_notification(request):
     if request.method == 'POST':
-        # Assuming data is coming in JSON format, so we parse it from request.body
-        data = json.loads(request.body)
+        # Parse the URL-encoded form data
+        data = QueryDict(request.body)
 
-        # Now only collect a few fields that you're interested in
+        # Now, you can access the values using the same dictionary-like interface
         country = data.get('country')
         amount = data.get('amount')
         tx_id = data.get('txId')
         status = data.get('status')
-        merchant_tx_id = data.get('merchantTxId')
+
+        # Proceed with your logic
 
         # You can adjust the fields based on what's most relevant to your needs
         # Store the collected data in the database
