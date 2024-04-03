@@ -4,12 +4,15 @@ import os
 import logging
 from urllib.parse import urlencode
 from dotenv import load_dotenv
+from django.http import HttpResponse
 from django.http import HttpResponseRedirect
 from django.conf import settings
 import time
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET
-
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
+from .models import PaymentNotification
 # Load environment variables
 load_dotenv()
 
@@ -23,7 +26,7 @@ BOIPA_TOKEN_URL = os.getenv('BOIPA_TOKEN_URL')  # URL to obtain the session toke
 PAYMENT_FORM_URL = os.getenv('HPP_FORM')  # URL for the payment form
 NGROK = os.getenv('NGROK')  # For ip tunnel from BOIPA
 HPP_FORM = os.getenv('HPP_FORM')
-base_order_id = "TCSP003"
+base_order_id = "TCSP005"
 timestamp = time.strftime("%Y%m%d%H%M%S")
 order_id = f"{base_order_id}_{timestamp}"
 
@@ -48,7 +51,7 @@ def get_boipa_session_token():
         "amount": "100.00",  # Example amount for AUTH or PURCHASE
         "merchantTxId": order_id,  # Your internal order ID
         "merchantLandingPageUrl": NGROK + "/payment-response/",  # General callback URL for customer redirection
-        "merchantNotificationUrl": NGROK + "/payment/notification/",  # Server-to-server notification URL(important
+        "merchantNotificationUrl": NGROK + "/payment-notification/",  # Server-to-server notification URL(important
         # in case user makes a mess)
         "merchantLandingPageRedirectMethod": "GET",  # Ensure redirects use GET
     }
@@ -80,43 +83,17 @@ def error_view(request):
     return render(request, 'error.html', {'error_message': error_message})
 
 
-# @require_GET
-# def payment_success(request):
-#     # Extract parameters from the GET request, if needed for display or logging
-#     order_id = request.GET.get('order_id')
-#     status = request.GET.get('status')
-#
-#     # You might want to update the order status in your database here
-#
-#     # Render a success template, potentially passing order details
-#     context = {'order_id': order_id, 'status': status}
-#     return render(request, 'payment_success.html', context)
-#
-#
-# @require_GET
-# def payment_failure(request):
-#     # Similarly, handle failure and extract any necessary information
-#     order_id = request.GET.get('order_id')
-#     message = request.GET.get('message')  # Assuming you expect a failure reason
-#
-#     # You might want to log this failure or notify someone
-#
-#     # Render a failure template, potentially passing failure details
-#     context = {'order_id': order_id, 'message': message}
-#     return render(request, 'payment_failure.html', context)
-
-
 def payment_response(request):
     # Assuming 'result' is a parameter indicating the payment outcome
     result = request.GET.get('result')
-    order_id = request.GET.get('merchantTxId')
+    order_ref = request.GET.get('merchantTxId')
 
     if result == "success":
         # Logic for successful payment
         context = {
             'title': "Payment Success",
             'message': "Your payment has been successfully processed.",
-            'order_id': order_id,
+            'order_ref': order_ref,
             'result': result,
         }
         return render(request, 'payment_success.html', context)
@@ -127,7 +104,7 @@ def payment_response(request):
         context = {
             'title': "Payment Failure",
             'message': f"Payment failed. Reason: {message}",
-            'order_id': order_id,
+            'order_ref': order_ref,
             'result': result,
         }
         return render(request, 'payment_failure.html', context)
@@ -135,3 +112,58 @@ def payment_response(request):
     else:
         # Handle unknown result
         return render(request, 'error.html', {'message': "Unknown payment response."})
+
+
+@csrf_exempt  # Disable CSRF protection for this endpoint
+def payment_notification(request):
+    if request.method == 'POST':
+        # Extract data from POST request
+        country = request.POST.get('country')
+        amount = request.POST.get('amount')
+        acquirer_tx_id = request.POST.get('acquirerTxId')
+        tx_id = request.POST.get('txId')
+        language = request.POST.get('language')
+        # Example of extracting nested data
+        auth_code = json.loads(request.POST.get('paymentSolutionDetails')).get('authCode')
+        acquirer = request.POST.get('acquirer')
+        acquirer_amount = request.POST.get('acquirerAmount')
+        myriad_flow_id = request.POST.get('myriadFlowId')
+        merchant_id = request.POST.get('merchantId')
+        brand_id = request.POST.get('brandId')
+        merchant_tx_id = request.POST.get('merchantTxId')
+        customer_id = request.POST.get('customerId')
+        acquirer_currency = request.POST.get('acquirerCurrency')
+        action = request.POST.get('action')
+        payment_solution_id = request.POST.get('paymentSolutionId')
+        currency = request.POST.get('currency')
+        pan = request.POST.get('pan')
+        status = request.POST.get('status')
+        original_tx_id = request.POST.get('originalTxId')
+
+        # Store in database
+        PaymentNotification.objects.create(
+            country=country,
+            amount=amount,
+            acquirer_tx_id=acquirer_tx_id,
+            tx_id=tx_id,
+            language=language,
+            auth_code=auth_code,
+            acquirer=acquirer,
+            acquirer_amount=acquirer_amount,
+            myriad_flow_id=myriad_flow_id,
+            merchant_id=merchant_id,
+            brand_id=brand_id,
+            merchant_tx_id=merchant_tx_id,
+            customer_id=customer_id,
+            acquirer_currency=acquirer_currency,
+            action=action,
+            payment_solution_id=payment_solution_id,
+            currency=currency,
+            pan=pan,
+            status=status,
+            original_tx_id=original_tx_id,
+        )
+
+        return HttpResponse("Notification received")
+    else:
+        return HttpResponse("Invalid request", status=400)
