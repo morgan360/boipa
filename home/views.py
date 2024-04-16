@@ -143,14 +143,12 @@ def payment_notification(request):
         merchantTxId = data.get('merchantTxId')
         source_prefix, order_id_str = merchantTxId.split("_", 1)
         order_id = int(order_id_str)
-        order = SimpleOrder.objects.get(id=order_id)
-        # country = data.get('country')
-        # amount = data.get('amount')
-        txId = data.get('txId')
+        order_obj = SimpleOrder.objects.get(id=order_id)
+
         # Store Notification Details
         PaymentNotification.objects.create(
-            order= order,
-            txId=txId,
+            order = order_obj,
+            txId=data.get('txId'),
             merchantTxId=data.get('merchantTxId'),
             country=data.get('country'),
             amount=data.get('amount'),
