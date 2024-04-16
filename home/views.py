@@ -107,7 +107,7 @@ def payment_response(request):
     if result == "success":
         # Save order status
         order = SimpleOrder.objects.get(id=order_id)
-        order.order = order,
+
         order.paid = True
         order.save()
         # Message
@@ -140,12 +140,16 @@ def payment_notification(request):
     if request.method == 'POST':
         # Parse the URL-encoded form data
         data = QueryDict(request.body)
-
+        merchantTxId = request.GET.get('merchantTxId')
+        source_prefix, order_id_str = merchantTxId.split("_", 1)
+        order_id = int(order_id_str)
+        order = SimpleOrder.objects.get(id=order_id)
         # country = data.get('country')
         # amount = data.get('amount')
         txId = data.get('txId')
         # Store Notification Details
         PaymentNotification.objects.create(
+            order= order,
             txId=txId,
             merchantTxId=merchantTxId,
             country=data.get('country'),
