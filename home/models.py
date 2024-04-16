@@ -1,7 +1,15 @@
 from django.db import models
+from orders.models import SimpleOrder
 
 
 class PaymentNotification(models.Model):
+    class Notification(models.Model):
+        order = models.ForeignKey(
+            SimpleOrder,
+            on_delete=models.CASCADE,
+            related_name='notifications',
+            default=1  # ID of the default SimpleOrder instance
+        )
     txId = models.CharField(max_length=50)  # The unique identifier for the transaction in the BOIPA Gateway
     merchantTxId = models.CharField(max_length=50)  # The merchant’s reference for the transaction provided in the
     country = models.CharField(max_length=2, null=True, blank=True)

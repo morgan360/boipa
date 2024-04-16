@@ -107,6 +107,7 @@ def payment_response(request):
     if result == "success":
         # Save order status
         order = SimpleOrder.objects.get(id=order_id)
+        order = order,
         order.paid = True
         order.save()
         # Message
@@ -143,12 +144,7 @@ def payment_notification(request):
         # country = data.get('country')
         # amount = data.get('amount')
         txId = data.get('txId')
-        merchantTxId = data.get('merchantTxId')
-        # status = data.get('status')
-
-        # Proceed with your logic
-        # Store the collected data in the database
-        # Uncomment the following line and make sure the PaymentNotification model is imported
+        # Store Notification Details
         PaymentNotification.objects.create(
             txId=txId,
             merchantTxId=merchantTxId,
