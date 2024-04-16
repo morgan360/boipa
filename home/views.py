@@ -140,21 +140,32 @@ def payment_notification(request):
         # Parse the URL-encoded form data
         data = QueryDict(request.body)
 
-        country = data.get('country')
-        amount = data.get('amount')
+        # country = data.get('country')
+        # amount = data.get('amount')
         txId = data.get('txId')
         merchantTxId = data.get('merchantTxId')
-        status = data.get('status')
+        # status = data.get('status')
 
         # Proceed with your logic
         # Store the collected data in the database
         # Uncomment the following line and make sure the PaymentNotification model is imported
         PaymentNotification.objects.create(
-            country=country,
-            amount=amount,
             txId=txId,
             merchantTxId=merchantTxId,
-            status=status,
+            country=data.get('country'),
+            amount=data.get('amount'),
+            currency=data.get('currency'),
+            action=data.get('action'),
+            # Assuming auth_code and other details are extracted correctly from paymentSolutionDetails or similar
+            # auth_code=data.get('auth_code'),
+            acquirer=data.get('acquirer'),
+            acquirerAmount=data.get('acquirerAmount'),
+            merchantId=data.get('merchantId'),
+            brandId=data.get('brandId'),
+            customerId=data.get('customerId'),
+            acquirerCurrency=data.get('acquirerCurrency'),
+            paymentSolutionId=data.get('paymentSolutionId'),
+            status=data.get('status'),
         )
 
         # Return a successful HTTP response
