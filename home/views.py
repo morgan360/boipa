@@ -45,8 +45,9 @@ def get_boipa_session_token():
     )
     order.save()
     order_id = order.id
-    print(order_id)
 
+    order_ref = f'simple_{order_id}'
+    print(order_ref)
     timestamp = time.strftime("%Y%m%d%H%M%S")
     # order_id = f"{base_order_id}_{timestamp}"
 
@@ -62,7 +63,7 @@ def get_boipa_session_token():
         "country": "IE",  # Example country code
         "currency": "EUR",  # Example currency
         "amount": "190.00",  # Example amount for AUTH or PURCHASE
-        "merchantTxId": order_id,  # Your internal order ID
+        "merchantTxId": order_ref,  # Your internal order ID
         "merchantLandingPageUrl": "https://morganmck.eu.pythonanywhere.com//payment-response/",  # General callback URL for customer redirection
         "merchantNotificationUrl":"https://morganmck.eu.pythonanywhere.com//payment-notification/",  # Server-to-server notification URL(important
         # in case user makes a mess)
@@ -99,10 +100,16 @@ def error_view(request):
 def payment_response(request):
     # Assuming 'result' is a parameter indicating the payment outcome
     result = request.GET.get('result')
-    order_ref = request.GET.get('merchantTxId')
-
+    merchantTxId = request.GET.get('merchantTxId')
+    source_prefix, order_id_str = merchantTxId.split("_", 1)
+    order_ref = merchantTxId
+    order_id = int(order_id_str)
     if result == "success":
-        # Logic for successful payment
+        # Save order status
+        order = SimpleOrder.objects.get(id=order_id)
+        order.paid = True
+        order.save()
+        # Message
         context = {
             'title': "Payment Success",
             'message': "Your payment has been successfully processed.",
