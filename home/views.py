@@ -15,6 +15,7 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from .models import PaymentNotification
 from django.http import QueryDict
+from orders.models import SimpleOrder
 
 # Load environment variables
 load_dotenv()
@@ -36,9 +37,18 @@ def home(request):
 
 
 def get_boipa_session_token():
-    base_order_id = "TCSP006"
+    # Create an order
+    order = SimpleOrder(
+        customer_name='John Doe',
+        paid=True,
+        total_cost=99.99
+    )
+    order.save()
+    order_id = order.id
+    print(order_id)
+
     timestamp = time.strftime("%Y%m%d%H%M%S")
-    order_id = f"{base_order_id}_{timestamp}"
+    # order_id = f"{base_order_id}_{timestamp}"
 
     url = BOIPA_TOKEN_URL  # UAT URL, change for production
     headers = {'Content-Type': 'application/x-www-form-urlencoded'}
