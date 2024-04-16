@@ -140,7 +140,7 @@ def payment_notification(request):
     if request.method == 'POST':
         # Parse the URL-encoded form data
         data = QueryDict(request.body)
-        merchantTxId = data.GET.get('merchantTxId')
+        merchantTxId = data.get('merchantTxId')
         source_prefix, order_id_str = merchantTxId.split("_", 1)
         order_id = int(order_id_str)
         order = SimpleOrder.objects.get(id=order_id)
@@ -151,7 +151,7 @@ def payment_notification(request):
         PaymentNotification.objects.create(
             order= order,
             txId=txId,
-            merchantTxId=data.GET.get('merchantTxId'),
+            merchantTxId=data.get('merchantTxId'),
             country=data.get('country'),
             amount=data.get('amount'),
             currency=data.get('currency'),
