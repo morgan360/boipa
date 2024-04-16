@@ -107,7 +107,7 @@ def payment_response(request):
     if result == "success":
         # Save order status
         order = SimpleOrder.objects.get(id=order_id)
-        order = order,
+        order.order = order,
         order.paid = True
         order.save()
         # Message
