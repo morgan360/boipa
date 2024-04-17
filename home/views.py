@@ -16,6 +16,7 @@ from django.views.decorators.http import require_POST
 from .models import PaymentNotification
 from django.http import QueryDict
 from orders.models import SimpleOrder
+from django.db import transaction
 
 # Load environment variables
 load_dotenv()
@@ -101,31 +102,22 @@ def payment_response(request):
     # Assuming 'result' is a parameter indicating the payment outcome
     result = request.GET.get('result')
     merchantTxId = request.GET.get('merchantTxId')
-    source_prefix, order_id_str = merchantTxId.split("_", 1)
-    order_ref = merchantTxId
-    order_id = int(order_id_str)
     if result == "success":
-        # Save order status
-        order = SimpleOrder.objects.get(id=order_id)
-
-        order.paid = True
-        order.save()
         # Message
         context = {
             'title': "Payment Success",
             'message': "Your payment has been successfully processed.",
-            'order_ref': order_ref,
+            'order_ref': merchantTxId,
             'result': result,
         }
         return render(request, 'payment_success.html', context)
 
     elif result == "failure":
         # Logic for failed payment
-        message = request.GET.get('message')  # Assuming a failure message is passed
         context = {
             'title': "Payment Failure",
             'message': f"Payment failed. Reason: {message}",
-            'order_ref': order_ref,
+            'order_ref':merchantTxId,
             'result': result,
         }
         return render(request, 'payment_failure.html', context)
@@ -143,31 +135,36 @@ def payment_notification(request):
         merchantTxId = data.get('merchantTxId')
         source_prefix, order_id_str = merchantTxId.split("_", 1)
         order_id = int(order_id_str)
-        order_obj = SimpleOrder.objects.get(id=order_id)
 
+    # Update Order
+        with transaction.atomic():
+            order = SimpleOrder.objects.get(id=order_id)
+            order.paid = True
+            order.save()
         # Store Notification Details
-        PaymentNotification.objects.create(
-            order = order_obj,
-            txId=data.get('txId'),
-            merchantTxId=data.get('merchantTxId'),
-            country=data.get('country'),
-            amount=data.get('amount'),
-            currency=data.get('currency'),
-            action=data.get('action'),
-            # Assuming auth_code and other details are extracted correctly from paymentSolutionDetails or similar
-            # auth_code=data.get('auth_code'),
-            acquirer=data.get('acquirer'),
-            acquirerAmount=data.get('acquirerAmount'),
-            merchantId=data.get('merchantId'),
-            brandId=data.get('brandId'),
-            customerId=data.get('customerId'),
-            acquirerCurrency=data.get('acquirerCurrency'),
-            paymentSolutionId=data.get('paymentSolutionId'),
-            status=data.get('status'),
-        )
+        with transaction.atomic():
+            PaymentNotification.objects.create(
+                order = order_obj,
+                txId=data.get('txId'),
+                merchantTxId=data.get('merchantTxId'),
+                country=data.get('country'),
+                amount=data.get('amount'),
+                currency=data.get('currency'),
+                action=data.get('action'),
+                # Assuming auth_code and other details are extracted correctly from paymentSolutionDetails or similar
+                # auth_code=data.get('auth_code'),
+                acquirer=data.get('acquirer'),
+                acquirerAmount=data.get('acquirerAmount'),
+                merchantId=data.get('merchantId'),
+                brandId=data.get('brandId'),
+                customerId=data.get('customerId'),
+                acquirerCurrency=data.get('acquirerCurrency'),
+                paymentSolutionId=data.get('paymentSolutionId'),
+                status=data.get('status'),
+            )
 
-        # Return a successful HTTP response
-        return HttpResponse('Payment processed successfully', status=200)
+            # Return a successful HTTP response
+            return HttpResponse('Payment processed successfully', status=200)
 
     # If not a POST request, or if other issues are encountered
     return HttpResponse('Invalid request', status=400)
