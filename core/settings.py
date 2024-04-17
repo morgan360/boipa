@@ -27,29 +27,66 @@ LOG_FILE_PATH = os.path.join(LOGGING_DIR, 'debug.log')
 if not os.path.exists(LOGGING_DIR):
     os.makedirs(LOGGING_DIR)
 
+PAYMENTS_LOG_FILE_PATH =  '/home/morganmck/swimtcsp/logs/boipa.log'
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
     'handlers': {
-        'file': {
+        'payments_file': {
             'level': 'DEBUG',
             'class': 'logging.FileHandler',
-            'filename': LOG_FILE_PATH,  # Use the variable
+            'filename': PAYMENTS_LOG_FILE_PATH,
+            'formatter': 'detailed',
         },
         'console': {
-            'level': 'INFO',
+            'level': 'DEBUG',
             'class': 'logging.StreamHandler',
+            'formatter': 'simple',
+        },
+    },
+    'formatters': {
+        'detailed': {
+            'format': '{asctime} {levelname} {module} {message}',
+            'style': '{',
+        },
+        'simple': {
+            'format': '{levelname} {message}',
+            'style': '{',
         },
     },
     'loggers': {
-        'django': {
-            'handlers': ['file', 'console'],
+        'payments': {
+            'handlers': ['payments_file'],
             'level': 'DEBUG',
-            'propagate': True,
+            'propagate': False,  # Prevent the payment logs from propagating to the root logger
         },
-        # Consider defining loggers for your applications as well
     },
 }
+
+# LOGGING = {
+#     'version': 1,
+#     'disable_existing_loggers': False,
+#     'handlers': {
+#         'file': {
+#             'level': 'DEBUG',
+#             'class': 'logging.FileHandler',
+#             'filename': LOG_FILE_PATH,  # Use the variable
+#         },
+#         'console': {
+#             'level': 'INFO',
+#             'class': 'logging.StreamHandler',
+#         },
+#     },
+#     'loggers': {
+#         'django': {
+#             'handlers': ['file', 'console'],
+#             'level': 'DEBUG',
+#             'propagate': True,
+#         },
+#         # Consider defining loggers for your applications as well
+#     },
+# }
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
@@ -165,5 +202,6 @@ BOIPA_MERCHANT_ID = os.getenv("BOIPA_MERCHANT_ID")
 BOIPA_PASSWORD = os.getenv("BOIPA_PASSWORD")
 
 # Add other necessary configuration variables here
+
 
 

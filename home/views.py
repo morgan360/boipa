@@ -22,7 +22,7 @@ from django.db import transaction
 load_dotenv()
 
 # Initialize logging
-logger = logging.getLogger(__name__)
+payments_logger = logging.getLogger('payments')
 
 # Environment variables
 BOIPA_MERCHANT_ID = os.getenv('BOIPA_MERCHANT_ID')
@@ -130,6 +130,7 @@ def payment_response(request):
 @csrf_exempt  # Disable CSRF protection for this endpoint
 def payment_notification(request):
     if request.method == 'POST':
+        payments_logger.debug(f"Received payment notification: {request.POST.dict()}")
         # Parse the URL-encoded form data
         data = QueryDict(request.body)
         merchantTxId = data.get('merchantTxId')
@@ -162,7 +163,7 @@ def payment_notification(request):
                 paymentSolutionId=data.get('paymentSolutionId'),
                 status=data.get('status'),
             )
-
+            payments_logger.info("Payment processed successfully.")
             # Return a successful HTTP response
             return HttpResponse('Payment processed successfully', status=200)
 
