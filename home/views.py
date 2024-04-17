@@ -100,6 +100,7 @@ def error_view(request):
 
 def payment_response(request):
     # Assuming 'result' is a parameter indicating the payment outcome
+    payments_logger.debug(f"Received payment response: {request.GET.dict()}")
     result = request.GET.get('result')
     merchantTxId = request.GET.get('merchantTxId')
     if result == "success":
