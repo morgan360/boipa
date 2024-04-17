@@ -116,7 +116,7 @@ def payment_response(request):
         # Logic for failed payment
         context = {
             'title': "Payment Failure",
-            'message': f"Payment failed. Reason: {message}",
+            'message': f"Payment failed",
             'order_ref':merchantTxId,
             'result': result,
         }
