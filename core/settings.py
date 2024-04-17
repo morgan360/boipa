@@ -27,7 +27,7 @@ LOG_FILE_PATH = os.path.join(LOGGING_DIR, 'debug.log')
 if not os.path.exists(LOGGING_DIR):
     os.makedirs(LOGGING_DIR)
 
-PAYMENTS_LOG_FILE_PATH =  '/home/morganmck/swimtcsp/logs/payments.log'
+PAYMENTS_LOG_FILE_PATH =  '/home/morganmck/boipa/logs/payments.log'
 
 LOGGING = {
     'version': 1,
