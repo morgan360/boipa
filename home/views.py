@@ -144,7 +144,7 @@ def payment_notification(request):
         # Store Notification Details
         with transaction.atomic():
             PaymentNotification.objects.create(
-                order = order_obj,
+                order = order,
                 txId=data.get('txId'),
                 merchantTxId=data.get('merchantTxId'),
                 country=data.get('country'),
