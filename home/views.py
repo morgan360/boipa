@@ -63,7 +63,7 @@ def get_boipa_session_token():
         "channel": "ECOM",  # Assuming an e-commerce transaction
         "country": "IE",  # Assuming Ireland, adjust as needed
         "currency": "EUR",
-        "amount": str(total_price),
+        "amount": "190.00",
         "merchantTxId": order_ref,
         "merchantLandingPageUrl": NGROK + reverse('home:payment-response'),
         "merchantNotificationUrl": NGROK + reverse('home:payment-notification'),
