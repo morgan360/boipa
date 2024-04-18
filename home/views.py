@@ -34,7 +34,7 @@ NGROK = os.getenv('NGROK')
 
 def home(request):
     # Render the home page. Additional context can be passed if needed.
-    return render(request, 'home.html')
+    return render(request, 'home:home.html')
 
 
 def get_boipa_session_token():
