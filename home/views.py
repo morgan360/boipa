@@ -30,7 +30,7 @@ BOIPA_PASSWORD = os.getenv('BOIPA_PASSWORD')
 BOIPA_TOKEN_URL = os.getenv('BOIPA_TOKEN_URL')  # URL to obtain the session token
 PAYMENT_FORM_URL = os.getenv('HPP_FORM')  # URL for the payment form
 HPP_FORM = os.getenv('HPP_FORM')
-
+NGROK = os.getenv('NGROK')
 
 def home(request):
     # Render the home page. Additional context can be passed if needed.
@@ -46,7 +46,7 @@ def get_boipa_session_token():
     )
     order.save()
     order_id = order.id
-
+    total_price = 789.12
     order_ref = f'simple_{order_id}'
     print(order_ref)
     timestamp = time.strftime("%Y%m%d%H%M%S")
@@ -55,21 +55,46 @@ def get_boipa_session_token():
     url = BOIPA_TOKEN_URL  # UAT URL, change for production
     headers = {'Content-Type': 'application/x-www-form-urlencoded'}
     payload = {
-        "merchantId": settings.BOIPA_MERCHANT_ID,
-        "password": settings.BOIPA_PASSWORD,
-        "action": "AUTH",  # Based on the operation you're performing
-        "timestamp": int(time.time() * 1000),  # Current time in milliseconds
-        "allowOriginUrl": 'https://morganmck.eu.pythonanywhere.com/',  # Your ngrok URL for CORS
-        "channel": "ECOM",
-        "country": "IE",  # Example country code
-        "currency": "EUR",  # Example currency
-        "amount": "190.00",  # Example amount for AUTH or PURCHASE
-        "merchantTxId": order_ref,  # Your internal order ID
-        "merchantLandingPageUrl": "https://morganmck.eu.pythonanywhere.com//payment-response/",  # General callback URL for customer redirection
-        "merchantNotificationUrl":"https://morganmck.eu.pythonanywhere.com//payment-notification/",  # Server-to-server notification URL(important
-        # in case user makes a mess)
-        "merchantLandingPageRedirectMethod": "GET",  # Ensure redirects use GET
+        "merchantId": BOIPA_MERCHANT_ID,
+        "password": BOIPA_PASSWORD,
+        "action": "AUTH",  # Could be "AUTH", "PURCHASE", or "VERIFY" depending on the transaction
+        "timestamp": str(int(time.time() * 1000)),
+        "allowOriginUrl": NGROK,  # The URL BOIPA should allow origin from
+        "channel": "ECOM",  # Assuming an e-commerce transaction
+        "country": "IE",  # Assuming Ireland, adjust as needed
+        "currency": "EUR",
+        "amount": str(total_price),
+        "merchantTxId": order_ref,
+        "merchantLandingPageUrl": NGROK + reverse('boipa:payment_response'),
+        "merchantNotificationUrl": NGROK + reverse('boipa:payment_notification'),
+        "merchantLandingPageRedirectMethod": "GET",  # Could also be "POST" if that method is used
+        "userDevice": "DESKTOP",  # Assuming a desktop, dynamically set this based on the user's device
+        # Additional operational tracking and configuration parameters
+        "merchantChallengeInd": "01",  # No preference for challenge, could adjust based on risk assessment
+        "merchantDecReqInd": "N",  # Not using Decoupled Authentication
+        "operatorId": None,  # Include this if you need to track which operator processed the transaction
+        "brandId": None,  # Include this if differentiating between brands in the same merchant account
+        "freeText": "Optional extra transaction info",  # Free text for any additional details
+        "limitMin": None,  # Optional, set this if you have a minimum transaction limit
+        "limitMax": None,  # Optional, set this if you have a maximum transaction limit
     }
+
+    # payload = {
+    #     "merchantId": settings.BOIPA_MERCHANT_ID,
+    #     "password": settings.BOIPA_PASSWORD,
+    #     "action": "AUTH",  # Based on the operation you're performing
+    #     "timestamp": int(time.time() * 1000),  # Current time in milliseconds
+    #     "allowOriginUrl": 'https://morganmck.eu.pythonanywhere.com/',  # Your ngrok URL for CORS
+    #     "channel": "ECOM",
+    #     "country": "IE",  # Example country code
+    #     "currency": "EUR",  # Example currency
+    #     "amount": "190.00",  # Example amount for AUTH or PURCHASE
+    #     "merchantTxId": order_ref,  # Your internal order ID
+    #     "merchantLandingPageUrl": "https://morganmck.eu.pythonanywhere.com//payment-response/",  # General callback URL for customer redirection
+    #     "merchantNotificationUrl":"https://morganmck.eu.pythonanywhere.com//payment-notification/",  # Server-to-server notification URL(important
+    #     # in case user makes a mess)
+    #     "merchantLandingPageRedirectMethod": "GET",  # Ensure redirects use GET
+    # }
 
     response = requests.post(url, data=payload, headers=headers)
     if response.status_code == 200:
