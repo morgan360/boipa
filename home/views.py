@@ -17,7 +17,7 @@ from .models import PaymentNotification
 from django.http import QueryDict
 from orders.models import SimpleOrder
 from django.db import transaction
-
+from decimal import Decimal
 # Load environment variables
 load_dotenv()
 
@@ -36,7 +36,8 @@ def home(request):
     # Render the home page. Additional context can be passed if needed.
     return render(request, 'home.html')
 
-
+total_price = 190.00
+amount = Decimal(f"{total_price:.2f}")
 def get_boipa_session_token():
     # Create an order
     order = SimpleOrder(
@@ -45,25 +46,24 @@ def get_boipa_session_token():
         total_cost=99.99
     )
     order.save()
+
+    total_price = 189.12
+    amount = Decimal(f"{total_price:.2f}")
     order_id = order.id
-    total_price = 789.12
     order_ref = f'simple_{order_id}'
-    print(order_ref)
-    timestamp = time.strftime("%Y%m%d%H%M%S")
-    # order_id = f"{base_order_id}_{timestamp}"
 
     url = BOIPA_TOKEN_URL  # UAT URL, change for production
     headers = {'Content-Type': 'application/x-www-form-urlencoded'}
     payload = {
         "merchantId": BOIPA_MERCHANT_ID,
         "password": BOIPA_PASSWORD,
-        "action": "AUTH",  # Could be "AUTH", "PURCHASE", or "VERIFY" depending on the transaction
-        "timestamp": str(int(time.time() * 1000)),
+        "action": "PURCHASE",  # Could be "AUTH", "PURCHASE", or "VERIFY" depending on the transaction
+        "timestamp": int(time.time() * 1000),
         "allowOriginUrl": NGROK,  # The URL BOIPA should allow origin from
         "channel": "ECOM",  # Assuming an e-commerce transaction
         "country": "IE",  # Assuming Ireland, adjust as needed
         "currency": "EUR",
-        "amount": "190.00",
+        "amount": str(amount),
         "merchantTxId": order_ref,
         "merchantLandingPageUrl": NGROK + reverse('home:payment-response'),
         "merchantNotificationUrl": NGROK + reverse('home:payment-notification'),
@@ -72,30 +72,13 @@ def get_boipa_session_token():
         # Additional operational tracking and configuration parameters
         "merchantChallengeInd": "01",  # No preference for challenge, could adjust based on risk assessment
         "merchantDecReqInd": "N",  # Not using Decoupled Authentication
-        "operatorId": None,  # Include this if you need to track which operator processed the transaction
-        "brandId": None,  # Include this if differentiating between brands in the same merchant account
+        # "brandId": None,  # Include this if differentiating between brands in the same merchant account
         "freeText": "Optional extra transaction info",  # Free text for any additional details
-        "limitMin": None,  # Optional, set this if you have a minimum transaction limit
-        "limitMax": None,  # Optional, set this if you have a maximum transaction limit
+        # "limitMin": "10.00",  # Optional, set this if you have a minimum transaction limit
+        # "limitMax": "800.00",  # Optional, set this if you have a maximum transaction limit
     }
 
-    # payload = {
-    #     "merchantId": settings.BOIPA_MERCHANT_ID,
-    #     "password": settings.BOIPA_PASSWORD,
-    #     "action": "AUTH",  # Based on the operation you're performing
-    #     "timestamp": int(time.time() * 1000),  # Current time in milliseconds
-    #     "allowOriginUrl": 'https://morganmck.eu.pythonanywhere.com/',  # Your ngrok URL for CORS
-    #     "channel": "ECOM",
-    #     "country": "IE",  # Example country code
-    #     "currency": "EUR",  # Example currency
-    #     "amount": "190.00",  # Example amount for AUTH or PURCHASE
-    #     "merchantTxId": order_ref,  # Your internal order ID
-    #     "merchantLandingPageUrl": "https://morganmck.eu.pythonanywhere.com//payment-response/",  # General callback URL for customer redirection
-    #     "merchantNotificationUrl":"https://morganmck.eu.pythonanywhere.com//payment-notification/",  # Server-to-server notification URL(important
-    #     # in case user makes a mess)
-    #     "merchantLandingPageRedirectMethod": "GET",  # Ensure redirects use GET
-    # }
-
+    payments_logger.debug("Sending payload to API: %s", {k: v for k, v in payload.items() if k != 'password'})
     response = requests.post(url, data=payload, headers=headers)
     if response.status_code == 200:
         return response.json().get('token')
@@ -129,6 +112,7 @@ def payment_response(request):
     result = request.GET.get('result')
     merchantTxId = request.GET.get('merchantTxId')
     if result == "success":
+        payments_logger.info(f"Payment for {merchantTxId} processed successfully.")
         # Message
         context = {
             'title': "Payment Success",
@@ -140,6 +124,7 @@ def payment_response(request):
 
     elif result == "failure":
         # Logic for failed payment
+        payments_logger.warning(f"Payment for {merchantTxId} failed.")
         context = {
             'title': "Payment Failure",
             'message': f"Payment failed",
