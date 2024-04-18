@@ -65,8 +65,8 @@ def get_boipa_session_token():
         "currency": "EUR",
         "amount": str(total_price),
         "merchantTxId": order_ref,
-        "merchantLandingPageUrl": NGROK + reverse('boipa:payment_response'),
-        "merchantNotificationUrl": NGROK + reverse('boipa:payment_notification'),
+        "merchantLandingPageUrl": NGROK + reverse('home:payment_response'),
+        "merchantNotificationUrl": NGROK + reverse('home:payment_notification'),
         "merchantLandingPageRedirectMethod": "GET",  # Could also be "POST" if that method is used
         "userDevice": "DESKTOP",  # Assuming a desktop, dynamically set this based on the user's device
         # Additional operational tracking and configuration parameters
