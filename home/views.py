@@ -18,6 +18,7 @@ from django.http import QueryDict
 from orders.models import SimpleOrder
 from django.db import transaction
 from decimal import Decimal
+
 # Load environment variables
 load_dotenv()
 
@@ -32,12 +33,12 @@ PAYMENT_FORM_URL = os.getenv('HPP_FORM')  # URL for the payment form
 HPP_FORM = os.getenv('HPP_FORM')
 NGROK = os.getenv('NGROK')
 
+
 def home(request):
     # Render the home page. Additional context can be passed if needed.
     return render(request, 'home.html')
 
-total_price = 190.00
-amount = Decimal(f"{total_price:.2f}")
+
 def get_boipa_session_token():
     # Create an order
     order = SimpleOrder(
@@ -46,10 +47,11 @@ def get_boipa_session_token():
         total_cost=99.99
     )
     order.save()
-
-    total_price = 189.12
-    amount = Decimal(f"{total_price:.2f}")
     order_id = order.id
+
+    total_price = 190.00
+    amount = Decimal(f"{total_price:.2f}")
+
     order_ref = f'simple_{order_id}'
 
     url = BOIPA_TOKEN_URL  # UAT URL, change for production
@@ -63,7 +65,7 @@ def get_boipa_session_token():
         "channel": "ECOM",  # Assuming an e-commerce transaction
         "country": "IE",  # Assuming Ireland, adjust as needed
         "currency": "EUR",
-        "amount": amount,
+        "amount": str(amount),
         "merchantTxId": order_ref,
         "merchantLandingPageUrl": NGROK + reverse('home:payment-response'),
         "merchantNotificationUrl": NGROK + reverse('home:payment-notification'),
@@ -128,7 +130,7 @@ def payment_response(request):
         context = {
             'title': "Payment Failure",
             'message': f"Payment failed",
-            'order_ref':merchantTxId,
+            'order_ref': merchantTxId,
             'result': result,
         }
         return render(request, 'payment_failure.html', context)
@@ -148,7 +150,7 @@ def payment_notification(request):
         source_prefix, order_id_str = merchantTxId.split("_", 1)
         order_id = int(order_id_str)
 
-    # Update Order
+        # Update Order
         with transaction.atomic():
             order = SimpleOrder.objects.get(id=order_id)
             order.paid = True
@@ -156,7 +158,7 @@ def payment_notification(request):
         # Store Notification Details
         with transaction.atomic():
             PaymentNotification.objects.create(
-                order = order,
+                order=order,
                 txId=data.get('txId'),
                 merchantTxId=data.get('merchantTxId'),
                 country=data.get('country'),
@@ -180,4 +182,3 @@ def payment_notification(request):
 
     # If not a POST request, or if other issues are encountered
     return HttpResponse('Invalid request', status=400)
-
