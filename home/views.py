@@ -6,6 +6,7 @@ from django.views.decorators.csrf import csrf_exempt
 import logging
 from .models import PaymentNotification, SimpleOrder
 from .payment_functions import get_boipa_session_token  # If external functions are used
+from django.conf import settings
 
 # Initialize logging
 payments_logger = logging.getLogger('payments')
@@ -30,7 +31,7 @@ def load_payment_form(request):
         return render(request, 'error.html', {'error': 'Unable to obtain session token.'})
 
     # Construct the HPP URL with the obtained token and include integrationMode
-    hpp_url = HPP_FORM + f"?token={token}&merchantId={settings.BOIPA_MERCHANT_ID}&integrationMode=Standalone"
+    hpp_url = settings.HPP_FORM + f"?token={token}&merchantId={settings.BOIPA_MERCHANT_ID}&integrationMode=Standalone"
 
     # Redirect user to the HPP URL
     return redirect(hpp_url)
