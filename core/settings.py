@@ -45,7 +45,7 @@ if not os.path.exists(LOGGING_DIR):
 
 if DEBUG:
     # Debug mode: More verbose logging, local file path
-    PAYMENTS_LOG_FILE_PATH = 'logs/payments.log'
+    PAYMENTS_LOG_FILE_PATH = '/home/morganmck/boipa/logs/payments.log'
 else:
     # Production mode: Less verbose logging, potentially different log path
     PAYMENTS_LOG_FILE_PATH =  '/home/morganmck/boipa/logs/payments.log' # Example production log path
