@@ -21,7 +21,7 @@ def load_payment_form(request):
     # Create an order
     order = SimpleOrder(
         customer_name='John Doe',
-        paid=True,
+        paid=False,
         total_cost=99.99
     )
     order.save()

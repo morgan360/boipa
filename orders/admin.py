@@ -3,7 +3,7 @@ from .models import SimpleOrder
 
 
 class SimpleOrderAdmin(admin.ModelAdmin):
-    list_display = ['id', 'customer_name', 'paid', 'created', 'updated', 'total_cost']
+    list_display = ['id', 'customer_name', 'paid', 'created', 'updated', 'total_price']
     list_filter = ['paid', 'created', 'updated']
     search_fields = ['customer_name']
 

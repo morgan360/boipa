@@ -16,22 +16,22 @@ from dotenv import load_dotenv
 import logging
 import environ
 
+# Build paths inside the project like this: BASE_DIR / 'subdir'.
+BASE_DIR = Path(__file__).resolve().parent.parent
+# SECURITY WARNING: don't run with debug turned on in production!
+DEBUG = True
 # Initialize environ
 env = environ.Env()
 # Reading .env file
-environ.Env.read_env()
+env_file = os.path.join(BASE_DIR, '.env')
+env.read_env(env_file)  # Provide the path to the .env file
 
 # Environment variables
 BOIPA_MERCHANT_ID = env('BOIPA_MERCHANT_ID')
 BOIPA_PASSWORD = env('BOIPA_PASSWORD')
 BOIPA_TOKEN_URL = env('BOIPA_TOKEN_URL')
 HPP_FORM = env('HPP_FORM')
-NGROK = env('NGROK')
-
-
-
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
+NGROK = env('NGROK', default='http://localhost:4040')
 
 # Assuming BASE_DIR is already defined in your settings.py
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
@@ -42,7 +42,14 @@ LOG_FILE_PATH = os.path.join(LOGGING_DIR, 'debug.log')
 if not os.path.exists(LOGGING_DIR):
     os.makedirs(LOGGING_DIR)
 
-PAYMENTS_LOG_FILE_PATH =  '/home/morganmck/boipa/logs/payments.log'
+
+if DEBUG:
+    # Debug mode: More verbose logging, local file path
+    PAYMENTS_LOG_FILE_PATH = 'logs/payments.log'
+else:
+    # Production mode: Less verbose logging, potentially different log path
+    PAYMENTS_LOG_FILE_PATH =  '/home/morganmck/boipa/logs/payments.log' # Example production log path
+
 
 LOGGING = {
     'version': 1,
@@ -109,8 +116,7 @@ LOGGING = {
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-b%kawcu#o(=*3-klxuv2#anfm9y8a8ol2dfw93)!&w368%)hf2'
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+
 
 ALLOWED_HOSTS = ['*']
 
@@ -207,8 +213,3 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-
-
-
-

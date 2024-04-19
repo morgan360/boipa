@@ -5,7 +5,7 @@ class SimpleOrder(models.Model):
     created = models.DateTimeField(auto_now_add=True, verbose_name="Created")
     updated = models.DateTimeField(auto_now=True, verbose_name="Updated")
     paid = models.BooleanField(default=False, verbose_name="Paid")
-    total_cost = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Total Cost")
+    total_price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Total Price")
 
     class Meta:
         ordering = ('-created',)  # Orders records by creation time in descending order
