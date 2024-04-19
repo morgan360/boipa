@@ -22,7 +22,7 @@ def load_payment_form(request):
     order = SimpleOrder(
         customer_name='John Doe',
         paid=False,
-        total_cost=99.99
+        total_price=99.99
     )
     order.save()
     total_price = 199.00
