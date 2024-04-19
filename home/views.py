@@ -25,8 +25,9 @@ def load_payment_form(request):
         total_cost=99.99
     )
     order.save()
+    total_price = 199.00
     order_id = order.pk
-    token = get_boipa_session_token(order_id, total_price=199.40)
+    token = get_boipa_session_token(order_id, total_price)
     if token is None:
         return render(request, 'error.html', {'error': 'Unable to obtain session token.'})
 
