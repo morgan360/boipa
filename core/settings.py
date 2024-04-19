@@ -14,6 +14,21 @@ from pathlib import Path
 import os
 from dotenv import load_dotenv
 import logging
+import environ
+
+# Initialize environ
+env = environ.Env()
+# Reading .env file
+environ.Env.read_env()
+
+# Environment variables
+BOIPA_MERCHANT_ID = env('BOIPA_MERCHANT_ID')
+BOIPA_PASSWORD = env('BOIPA_PASSWORD')
+BOIPA_TOKEN_URL = env('BOIPA_TOKEN_URL')
+HPP_FORM = env('HPP_FORM')
+NGROK = env('NGROK')
+
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -193,15 +208,7 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-load_dotenv()  # take environment variables from .env.
 
-# Sandbox environment variables
-BOIPA_TOKEN_URL = "https://apiuat.test.boipapaymentgateway.com/token"
-BOIPA_PAYMENTS_URL = "https://apiuat.test.boipapaymentgateway.com/payments"
-BOIPA_MERCHANT_ID = os.getenv("BOIPA_MERCHANT_ID")
-BOIPA_PASSWORD = os.getenv("BOIPA_PASSWORD")
-
-# Add other necessary configuration variables here
 
 
 
